@@ -125,6 +125,9 @@ namespace TitleBarPrototype
             if (message.Msg == WM_NCHITTEST && message.Result == (IntPtr)0)
             {
                 int GrabSize = 10; // THIS IS THE THING THAT DETERMINES THE AREA YOU CAN GRAB ON THE BORDER
+
+                // LParam stores X (low 16 bits) and Y (high 16 bits) in a 32-bit value.
+                // Cast to long for 32-bit/64-bit safety, then extract signed 16-bit values.
                 int x = unchecked((short)(long)message.LParam);
                 int y = unchecked((short)((long)message.LParam >> 16));
                 var rect2 = new Rectangle(DesktopLocation.X + GrabSize, DesktopLocation.Y + GrabSize, ClientSize.Width - (GrabSize * 2), ClientSize.Height - (GrabSize * 2));
