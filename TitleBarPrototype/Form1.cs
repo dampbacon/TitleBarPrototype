@@ -48,21 +48,20 @@ namespace TitleBarPrototype
 
             btnMinimize = CreateTitleBarButton("➖", Color.Gray);
             btnMinimize.Click += (s, e) => this.WindowState = FormWindowState.Minimized;
-            titleBar.Controls.Add(btnMinimize);
 
             btnRestore = CreateTitleBarButton("❐", Color.Gray);
             btnRestore.Click += (s, e) =>
             {
                 this.WindowState = this.WindowState == FormWindowState.Maximized ? FormWindowState.Normal : FormWindowState.Maximized;
             };
-            titleBar.Controls.Add(btnRestore);
 
             btnClose = CreateTitleBarButton("✖", Color.Firebrick);
             btnClose.Click += (s, e) => this.Close();
+
+            titleBar.Controls.Add(btnMinimize);
+            titleBar.Controls.Add(btnRestore);
             titleBar.Controls.Add(btnClose);
 
-            PositionButtons();
-            this.Resize += (s, e) => PositionButtons();
         }
 
         private Button CreateTitleBarButton(string text, Color backColor)
@@ -80,13 +79,6 @@ namespace TitleBarPrototype
             button.MouseEnter += (s, e) => button.BackColor = Color.Yellow;
             button.MouseLeave += (s, e) => button.BackColor = backColor;
             return button;
-        }
-
-        private void PositionButtons()
-        {
-            btnClose.Location = new Point(this.ClientSize.Width - 45, 0);
-            btnRestore.Location = new Point(this.ClientSize.Width - 90, 0);
-            btnMinimize.Location = new Point(this.ClientSize.Width - 135, 0);
         }
 
         #endregion titleBarTest
@@ -132,12 +124,13 @@ namespace TitleBarPrototype
         {
             if (message.Msg == WM_NCHITTEST && message.Result == (IntPtr)0)
             {
-                int GrabSize = 30;
+                int GrabSize = 10; // THIS IS THE THING THAT DETERMINES THE AREA YOU CAN GRAB ON THE BORDER
                 int x = unchecked((short)(long)message.LParam);
                 int y = unchecked((short)((long)message.LParam >> 16));
                 var rect2 = new Rectangle(DesktopLocation.X + GrabSize, DesktopLocation.Y + GrabSize, ClientSize.Width - (GrabSize * 2), ClientSize.Height - (GrabSize * 2));
                 if (!rect2.Contains(x, y))
                 {
+                    //CUSTOM DEFINITION OF THE FLAGS FOR WM_NCHITTEST
                     if (y > rect2.Bottom && x < rect2.Left) message.Result = (IntPtr)16; // HTBOTTOMLEFT
                     else if (y < rect2.Top && x > rect2.Right) message.Result = (IntPtr)14; // HTTOPRIGHT
                     else if (y > rect2.Bottom && x > rect2.Right) message.Result = (IntPtr)17; // HTBOTTOMRIGHT
@@ -153,9 +146,12 @@ namespace TitleBarPrototype
                 }
                 return;
             }
+
+            // Prevents Windows from drawing the default window border and title bar,
+            // allowing full control over the non-client area.
             if (message.Msg == WM_NCCALCSIZE && message.WParam.ToInt32() == 1)
             {
-                message.Result = (IntPtr)0;
+                message.Result = (IntPtr)0; // THE SECRET SAUCE
                 return;
             }
             base.WndProc(ref message);
